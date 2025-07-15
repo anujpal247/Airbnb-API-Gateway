@@ -2,10 +2,13 @@ package main
 
 import (
 	"AuthApp/app"
+	config "AuthApp/config/env"
 )
 
 func main() {
-	cfg := app.NewConfig(":4000") // set the server to listen on port 4000
+	config.Load() // load env variables from .env file
+
+	cfg := app.NewConfig() // set the server
 	app := app.NewApplication(cfg)
 
 	app.Run()
