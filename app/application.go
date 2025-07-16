@@ -2,6 +2,7 @@ package app
 
 import (
 	config "AuthApp/config/env"
+	"AuthApp/router"
 	"fmt"
 	"net/http"
 	"time"
@@ -34,7 +35,7 @@ func NewApplication(cfg Config) *Application {
 func (app *Application) Run() error {
 	server := http.Server{
 		Addr:         app.Config.Addr,
-		Handler:      nil, // setup chi router
+		Handler:      router.SetupRouter(), // setup chi router
 		ReadTimeout:  10 * time.Second,
 		WriteTimeout: 10 * time.Second,
 	}
