@@ -2,7 +2,10 @@ package app
 
 import (
 	config "AuthApp/config/env"
+	"AuthApp/controllers"
+	db "AuthApp/db/repositories"
 	"AuthApp/router"
+	"AuthApp/services"
 	"fmt"
 	"net/http"
 	"time"
@@ -33,9 +36,15 @@ func NewApplication(cfg Config) *Application {
 }
 
 func (app *Application) Run() error {
+
+	ur := db.NewUserRepository()
+	us := services.NewUserService(ur)
+	uc := controllers.NewUserController(us)
+	uRouter := router.NewUserRouter(uc)
+
 	server := http.Server{
 		Addr:         app.Config.Addr,
-		Handler:      router.SetupRouter(), // setup chi router
+		Handler:      router.SetupRouter(uRouter), // setup chi router
 		ReadTimeout:  10 * time.Second,
 		WriteTimeout: 10 * time.Second,
 	}
