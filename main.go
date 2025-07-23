@@ -2,7 +2,6 @@ package main
 
 import (
 	"AuthApp/app"
-	dbConfig "AuthApp/config/db"
 	config "AuthApp/config/env"
 )
 
@@ -12,6 +11,6 @@ func main() {
 	cfg := app.NewConfig() // set the server
 	app := app.NewApplication(cfg)
 
-	dbConfig.SetupDB()
+	// dbConfig.SetupDB()
 	app.Run()
 }
