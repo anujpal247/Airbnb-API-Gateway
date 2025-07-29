@@ -11,7 +11,7 @@ import (
 )
 
 type UserService interface {
-	CreateUser() error
+	CreateUser(payload *dto.SignupUserRequestDTO) error
 	LoginUser(payload *dto.LoginUserRequestDTO) (string, error)
 }
 
@@ -25,15 +25,18 @@ func NewUserService(_userRepository db.UserRepository) UserService {
 	}
 }
 
-func (u *UserServiceImpl) CreateUser() error {
-	fmt.Println("creating user in user service")
-	hashPW, err := util.HashPassword("testpass")
+func (u *UserServiceImpl) CreateUser(payload *dto.SignupUserRequestDTO) error {
+	password := payload.Password
+	email := payload.Email
+	username := payload.Username
+
+	hashPW, err := util.HashPassword(password)
 	if err != nil {
 		fmt.Println("Error hassing pw", err)
 		return err
 	}
 
-	u.userRepository.Create("testuser", "test@test.com", hashPW)
+	u.userRepository.Create(username, email, hashPW)
 	return nil
 }
 

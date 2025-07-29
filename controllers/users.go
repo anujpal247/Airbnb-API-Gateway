@@ -4,7 +4,6 @@ import (
 	"AuthApp/dto"
 	"AuthApp/services"
 	"AuthApp/util"
-	"fmt"
 	"net/http"
 )
 
@@ -19,10 +18,24 @@ func NewUserController(_userService services.UserService) *UserController {
 }
 
 func (uc *UserController) RegisterUserHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("Register user is called in user controller")
-	// util.ReadJsonBody(r)
-	uc.UserService.CreateUser()
-	w.Write([]byte("User registration endpoint"))
+	var payload dto.SignupUserRequestDTO
+
+	jsonErr := util.ReadJsonBody(r, &payload)
+	if jsonErr != nil {
+		util.WriteJsonErrorResponse(w, http.StatusBadRequest, "Something went worng while reading json body", jsonErr)
+		return
+	}
+
+	if validationErr := util.Validator.Struct(payload); validationErr != nil {
+		util.WriteJsonErrorResponse(w, http.StatusBadRequest, "Invalid input data", validationErr)
+		return
+	}
+	err := uc.UserService.CreateUser(&payload)
+	if err != nil {
+		util.WriteJsonErrorResponse(w, http.StatusBadRequest, "something went worng", err)
+		return
+	}
+	util.WriteJsonSuccessResponse(w, http.StatusOK, "User Registered successfully", true)
 }
 
 func (uc *UserController) LoginUserHandler(w http.ResponseWriter, r *http.Request) {

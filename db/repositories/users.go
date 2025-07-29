@@ -23,7 +23,6 @@ func NewUserRepository(_db *sql.DB) UserRepository {
 }
 
 func (u *UserRepositoryImpl) Create(username string, email string, password string) error {
-	fmt.Println("Creating user in user repository")
 	query := "INSERT INTO users(username, email, password) VALUES(?,?,?)"
 	res, err := u.db.Exec(query, username, email, password)
 
