@@ -8,8 +8,10 @@ import (
 
 type UserRepository interface {
 	Create(username string, email string, password string) error
-	GetById() (*models.User, error)
+	GetById(id int64) (*models.User, error)
 	GetByEmail(email string) (*models.User, error)
+	GetAll() ([]*models.User, error)
+	DeleteById(id int64) error
 }
 
 type UserRepositoryImpl struct {
@@ -48,19 +50,19 @@ func (u *UserRepositoryImpl) Create(username string, email string, password stri
 	return nil
 }
 
-func (u *UserRepositoryImpl) GetById() (*models.User, error) {
+func (u *UserRepositoryImpl) GetById(id int64) (*models.User, error) {
 	fmt.Println("Getting user by id")
 
 	// step 1. prepare query
-	query := "SELECT id, username, email FROM users WHERE id = ?"
+	query := "SELECT id, username, email, created_at FROM users WHERE id = ?"
 
 	// step 2. execute the query
-	row := u.db.QueryRow(query, 1)
+	row := u.db.QueryRow(query, id)
 
 	// step 3. process the result
 	user := &models.User{}
 
-	err := row.Scan(&user.Id, &user.Username, &user.Email)
+	err := row.Scan(&user.Id, &user.Username, &user.Email, &user.CreatedAt)
 
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -100,4 +102,56 @@ func (u *UserRepositoryImpl) GetByEmail(email string) (*models.User, error) {
 
 	fmt.Println("user found", user)
 	return user, nil
+}
+
+func (u *UserRepositoryImpl) GetAll() ([]*models.User, error) {
+	query := "SELECT id, username, email, password, created_at FROM users"
+	rows, err := u.db.Query(query)
+	if err != nil {
+		fmt.Println("Error fetching users", err)
+		return nil, err
+	}
+
+	defer rows.Close()
+
+	var users []*models.User
+	for rows.Next() {
+		user := &models.User{}
+		if rowErr := rows.Scan(&user.Id, &user.Username, &user.Email, &user.Password, &user.CreatedAt); rowErr != nil {
+			fmt.Println("Error scaning user", err)
+			return nil, err
+		}
+
+		users = append(users, user)
+	}
+
+	if rowsErr := rows.Err(); rowsErr != nil {
+		fmt.Println("Error with rows", rowsErr)
+		return nil, rowsErr
+	}
+	return users, nil
+}
+
+func (u *UserRepositoryImpl) DeleteById(id int64) error {
+	query := "DELETE FROM users WHERE id = ?"
+	result, err := u.db.Exec(query, id)
+
+	if err != nil {
+		fmt.Println("Error deleting user", err)
+		return err
+	}
+
+	rowsAffected, rowErr := result.RowsAffected()
+
+	if rowErr != nil {
+		fmt.Println("Error getting rows affected", rowErr)
+		return rowErr
+	}
+
+	if rowsAffected == 0 {
+		fmt.Println("no rows were affected, user not deleted")
+		return nil
+	}
+	fmt.Println("user successfully deleted, rows affected:", rowsAffected)
+	return nil
 }

@@ -4,6 +4,7 @@ import (
 	"AuthApp/dto"
 	"AuthApp/services"
 	"AuthApp/util"
+	"fmt"
 	"net/http"
 )
 
@@ -18,19 +19,11 @@ func NewUserController(_userService services.UserService) *UserController {
 }
 
 func (uc *UserController) RegisterUserHandler(w http.ResponseWriter, r *http.Request) {
-	var payload dto.SignupUserRequestDTO
 
-	jsonErr := util.ReadJsonBody(r, &payload)
-	if jsonErr != nil {
-		util.WriteJsonErrorResponse(w, http.StatusBadRequest, "Something went worng while reading json body", jsonErr)
-		return
-	}
+	payload := r.Context().Value("payload").(*dto.SignupUserRequestDTO)
+	fmt.Println("payload recived: ", payload)
 
-	if validationErr := util.Validator.Struct(payload); validationErr != nil {
-		util.WriteJsonErrorResponse(w, http.StatusBadRequest, "Invalid input data", validationErr)
-		return
-	}
-	err := uc.UserService.CreateUser(&payload)
+	err := uc.UserService.CreateUser(payload)
 	if err != nil {
 		util.WriteJsonErrorResponse(w, http.StatusBadRequest, "something went worng", err)
 		return
@@ -39,26 +32,16 @@ func (uc *UserController) RegisterUserHandler(w http.ResponseWriter, r *http.Req
 }
 
 func (uc *UserController) LoginUserHandler(w http.ResponseWriter, r *http.Request) {
-	var payload dto.LoginUserRequestDTO
 
-	// jsonErr := util.ReadJsonBody(r, &payload)
-
-	// if jsonErr != nil {
-	// 	w.Write([]byte("something went worng"))
-	// 	w.WriteHeader(http.StatusBadRequest)
-	// }
-
-	if jsonErr := util.ReadJsonBody(r, &payload); jsonErr != nil {
-		util.WriteJsonErrorResponse(w, http.StatusBadRequest, "something went worng", jsonErr)
-		return
-	}
-
-	if validationErr := util.Validator.Struct(payload); validationErr != nil {
-		util.WriteJsonErrorResponse(w, http.StatusBadRequest, "Invalid input data", validationErr)
-		return
-	}
+	payload := r.Context().Value("payload").(dto.LoginUserRequestDTO)
 
 	jwtToken, err := uc.UserService.LoginUser(&payload)
+
+	if jwtToken == "worng password" {
+		util.WriteJsonErrorResponse(w, http.StatusBadRequest, "Worng Password", err)
+		return
+	}
+
 	if err != nil {
 		util.WriteJsonErrorResponse(w, http.StatusInternalServerError, "", err)
 		return

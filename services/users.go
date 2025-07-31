@@ -4,6 +4,7 @@ import (
 	env "AuthApp/config/env"
 	db "AuthApp/db/repositories"
 	"AuthApp/dto"
+	"AuthApp/models"
 	"AuthApp/util"
 	"fmt"
 
@@ -13,6 +14,8 @@ import (
 type UserService interface {
 	CreateUser(payload *dto.SignupUserRequestDTO) error
 	LoginUser(payload *dto.LoginUserRequestDTO) (string, error)
+	GetAll()
+	GetUserById(id int64) (*models.User, error)
 }
 
 type UserServiceImpl struct {
@@ -30,6 +33,8 @@ func (u *UserServiceImpl) CreateUser(payload *dto.SignupUserRequestDTO) error {
 	email := payload.Email
 	username := payload.Username
 
+	fmt.Println("username", username)
+
 	hashPW, err := util.HashPassword(password)
 	if err != nil {
 		fmt.Println("Error hassing pw", err)
@@ -45,18 +50,18 @@ func (u *UserServiceImpl) LoginUser(payload *dto.LoginUserRequestDTO) (string, e
 	email := payload.Email
 	password := payload.Password
 
-	fmt.Println("Getting user in user service")
+	// fmt.Println("Getting user in user service")
 	user, err := u.userRepository.GetByEmail(email)
 	if err != nil {
 		fmt.Println("Error fetching user by email", err)
 		return "", err
 	}
 	fmt.Println("Response ", user)
-	isPasswordValid := util.CheckPasswordHash(password, user.Password)
+	passwordErr := util.CheckPasswordHash(password, user.Password)
 
-	if !isPasswordValid {
+	if passwordErr != nil {
 		fmt.Println("worng password")
-		return "", nil
+		return "worng password", passwordErr
 	}
 
 	jwtPayload := jwt.MapClaims{
@@ -73,4 +78,19 @@ func (u *UserServiceImpl) LoginUser(payload *dto.LoginUserRequestDTO) (string, e
 		return "", tokenErr
 	}
 	return tokenString, nil
+}
+
+func (u *UserServiceImpl) GetUserById(id int64) (*models.User, error) {
+	// call get user by id
+	user, err := u.userRepository.GetById(id)
+
+	if err != nil {
+		fmt.Println("Error fetching user:", err)
+		return nil, err
+	}
+	return user, nil
+}
+
+func (u *UserServiceImpl) GetAll() {
+
 }
