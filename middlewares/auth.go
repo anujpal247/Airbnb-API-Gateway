@@ -44,8 +44,7 @@ func JWTAuthMiddleware(next http.Handler) http.Handler {
 
 		userId, okId := claims["id"].(float64)
 
-		email, okEmail := claims["Email"].(string)
-
+		email, okEmail := claims["email"].(string)
 		if !okId || !okEmail {
 			http.Error(w, "Invalid token claims", http.StatusUnauthorized)
 			return
