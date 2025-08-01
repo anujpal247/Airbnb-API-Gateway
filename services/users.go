@@ -15,7 +15,7 @@ type UserService interface {
 	CreateUser(payload *dto.SignupUserRequestDTO) error
 	LoginUser(payload *dto.LoginUserRequestDTO) (string, error)
 	GetAll()
-	GetUserById(id int64) (*models.User, error)
+	GetUserById(id string) (*models.User, error)
 }
 
 type UserServiceImpl struct {
@@ -80,7 +80,7 @@ func (u *UserServiceImpl) LoginUser(payload *dto.LoginUserRequestDTO) (string, e
 	return tokenString, nil
 }
 
-func (u *UserServiceImpl) GetUserById(id int64) (*models.User, error) {
+func (u *UserServiceImpl) GetUserById(id string) (*models.User, error) {
 	// call get user by id
 	user, err := u.userRepository.GetById(id)
 

@@ -49,3 +49,26 @@ func (uc *UserController) LoginUserHandler(w http.ResponseWriter, r *http.Reques
 
 	util.WriteJsonSuccessResponse(w, http.StatusOK, "user logged is successfully", jwtToken)
 }
+
+func (uc *UserController) GetUserByIdHandler(w http.ResponseWriter, r *http.Request) {
+	userId := r.Context().Value("userId").(string)
+
+	fmt.Println("user id from context", userId)
+
+	if userId == "" {
+		util.WriteJsonErrorResponse(w, http.StatusBadRequest, "user Id is required", fmt.Errorf("user id missing"))
+		return
+	}
+	user, err := uc.UserService.GetUserById(userId)
+
+	if err != nil {
+		util.WriteJsonErrorResponse(w, http.StatusInternalServerError, "Failed to fetch user", err)
+	}
+
+	if user == nil {
+		util.WriteJsonErrorResponse(w, http.StatusNotFound, "User not found", fmt.Errorf("user with id %s not found", userId))
+		return
+	}
+
+	util.WriteJsonSuccessResponse(w, http.StatusOK, "user fetched successfully", user)
+}
