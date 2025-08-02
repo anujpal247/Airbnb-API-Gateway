@@ -54,7 +54,7 @@ func (u *UserRepositoryImpl) GetById(id string) (*models.User, error) {
 	fmt.Println("Getting user by id")
 
 	// step 1. prepare query
-	query := "SELECT id, username, email, created_at FROM users WHERE id = ?"
+	query := "SELECT id, username, email, created_at, updated_at FROM users WHERE id = ?"
 
 	// step 2. execute the query
 	row := u.db.QueryRow(query, id)
@@ -62,7 +62,7 @@ func (u *UserRepositoryImpl) GetById(id string) (*models.User, error) {
 	// step 3. process the result
 	user := &models.User{}
 
-	err := row.Scan(&user.Id, &user.Username, &user.Email, &user.CreatedAt)
+	err := row.Scan(&user.Id, &user.Username, &user.Email, &user.CreatedAt, &user.UpdatedAt)
 
 	if err != nil {
 		if err == sql.ErrNoRows {
